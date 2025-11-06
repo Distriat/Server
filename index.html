@@ -3,568 +3,1141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Крестики-нолики</title>
+    <title>Морской Бой - P2P WebRTC</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             padding: 20px;
-            color: white;
+            color: #333;
         }
-        
+
         .container {
-            max-width: 900px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 30px;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .game-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-            width: 100%;
-        }
-        
-        .game-board {
-            flex: 1;
-            min-width: 350px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
             border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
         }
-        
-        .game-mode {
-            display: flex;
-            gap: 15px;
+
+        header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .section {
+            padding: 30px;
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h3 {
+            color: #34495e;
             margin-bottom: 15px;
         }
-        
-        .difficulty {
+
+        /* Connection Section */
+        .connection-options {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-            width: 100%;
-            align-items: center;
-        }
-        
-        .difficulty-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-        
-        .difficulty-buttons {
-            display: flex;
-            gap: 10px;
+            gap: 30px;
+            justify-content: center;
             flex-wrap: wrap;
-            justify-content: center;
+            margin: 30px 0;
         }
-        
-        .mode-btn, .difficulty-btn {
-            padding: 10px 20px;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-        }
-        
-        .mode-btn.active, .difficulty-btn.active {
-            background: #4da6ff;
-            border-color: #4da6ff;
-        }
-        
-        .difficulty-btn.easy.active {
-            background: #4CAF50;
-            border-color: #4CAF50;
-        }
-        
-        .difficulty-btn.medium.active {
-            background: #FF9800;
-            border-color: #FF9800;
-        }
-        
-        .difficulty-btn.hard.active {
-            background: #F44336;
-            border-color: #F44336;
-        }
-        
-        .status {
-            margin: 20px 0;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-align: center;
-            min-height: 40px;
-        }
-        
-        .board {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .cell {
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.15);
+
+        .option {
+            background: #f8f9fa;
+            padding: 25px;
             border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 3rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .cell:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-3px);
-        }
-        
-        .cell.x {
-            color: #ff4d4d;
-        }
-        
-        .cell.o {
-            color: #4da6ff;
-        }
-        
-        .reset-btn {
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            background: #4da6ff;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .reset-btn:hover {
-            background: #3385d6;
-            transform: translateY(-3px);
-        }
-        
-        .ad-container {
+            border: 2px solid #e9ecef;
+            text-align: center;
             flex: 1;
             min-width: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            transition: transform 0.3s, border-color 0.3s;
         }
-        
-        .ad-title {
-            font-size: 1.5rem;
+
+        .option:hover {
+            transform: translateY(-5px);
+            border-color: #3498db;
+        }
+
+        .option h4 {
             margin-bottom: 15px;
-            text-align: center;
+            color: #2c3e50;
         }
-        
-        .ad-content {
+
+        input, textarea {
             width: 100%;
-            height: 250px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: monospace;
+        }
+
+        /* Boards */
+        .boards-container {
             display: flex;
-            flex-direction: column;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .board-container {
+            text-align: center;
+        }
+
+        .board-container h4 {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-template-rows: repeat(10, 40px);
+            gap: 2px;
+            background: #b3d9ff;
+            padding: 10px;
+            border-radius: 8px;
+            border: 3px solid #3498db;
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background: rgba(173, 216, 230, 0.7);
+            border: 1px solid #3498db;
+            cursor: pointer;
+            display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-radius: 3px;
+        }
+
+        .cell:hover {
+            background: rgba(135, 206, 250, 0.9);
+            transform: scale(1.05);
+        }
+
+        .cell.ship {
+            background: #2c3e50;
+            border-color: #34495e;
+        }
+
+        .cell.hit {
+            background: #e74c3c;
+            border-color: #c0392b;
+        }
+
+        .cell.hit.ship::after {
+            content: "💥";
+            font-size: 16px;
+        }
+
+        .cell.miss {
+            background: #ecf0f1;
+            border-color: #bdc3c7;
+        }
+
+        .cell.miss::after {
+            content: "•";
+            color: #7f8c8d;
+            font-size: 20px;
+        }
+
+        .cell:not(.hit):not(.miss):not(.ship):hover {
+            background: #3498db;
+        }
+
+        /* Game Info */
+        .game-info {
+            background: #ecf0f1;
             padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
             text-align: center;
         }
-        
-        .ad-text {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
+
+        .connection-status {
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
         }
-        
-        .ad-placeholder {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            opacity: 0.7;
+
+        .status-connecting {
+            background: #f39c12;
+            color: white;
         }
-        
-        footer {
-            margin-top: 30px;
+
+        .status-connected {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-disconnected {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* Controls */
+        .p2p-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .code-section {
+            margin: 15px 0;
+        }
+
+        .code-section h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        /* Buttons */
+        button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #2980b9, #3498db);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        /* Loading */
+        .loading {
             text-align: center;
-            font-size: 0.9rem;
-            opacity: 0.8;
+            padding: 30px;
         }
-        
-        @media (max-width: 700px) {
-            .game-container {
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Instructions */
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+
+        .instructions h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .boards-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .board {
+                grid-template-columns: repeat(10, 35px);
+                grid-template-rows: repeat(10, 35px);
+            }
+            
+            .cell {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .connection-options {
                 flex-direction: column;
             }
             
-            .game-board, .ad-container {
-                width: 100%;
+            .option {
+                min-width: auto;
             }
+        }
+
+        /* Ship counters */
+        .ship-counters {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .ship-counter {
+            background: #34495e;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .ship-counter.destroyed {
+            background: #e74c3c;
+            text-decoration: line-through;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Крестики-нолики</h1>
-            <p>Классическая игра для двух игроков или против бота</p>
+            <h1>🚢 Морской Бой</h1>
+            <div class="subtitle">P2P версия через WebRTC - играйте напрямую с друзьями!</div>
         </header>
-        
-        <div class="game-container">
-            <div class="game-board">
-                <div class="game-mode">
-                    <button class="mode-btn active" id="modeTwoPlayers">Два игрока</button>
-                    <button class="mode-btn" id="modeVsBot">Против бота</button>
-                </div>
-                
-                <div class="difficulty" id="difficultyContainer">
-                    <div class="difficulty-title">Уровень сложности:</div>
-                    <div class="difficulty-buttons">
-                        <button class="difficulty-btn easy active" id="difficultyEasy">Деградант</button>
-                        <button class="difficulty-btn medium" id="difficultyMedium">Нормис</button>
-                        <button class="difficulty-btn hard" id="difficultyHard">Ну сука точно умнее твоей мамаши</button>
-                    </div>
-                </div>
-                
-                <div class="status" id="status">Ход игрока: X</div>
-                <div class="board" id="board">
-                    <div class="cell" data-index="0"></div>
-                    <div class="cell" data-index="1"></div>
-                    <div class="cell" data-index="2"></div>
-                    <div class="cell" data-index="3"></div>
-                    <div class="cell" data-index="4"></div>
-                    <div class="cell" data-index="5"></div>
-                    <div class="cell" data-index="6"></div>
-                    <div class="cell" data-index="7"></div>
-                    <div class="cell" data-index="8"></div>
-                </div>
-                <button class="reset-btn" id="reset">Новая игра</button>
-            </div>
+
+        <!-- Connection Section -->
+        <div id="connection-section" class="section active">
+            <h2>Подключение к игре</h2>
             
-            <div class="ad-container">
-                <h2 class="ad-title">Рекламный блок</h2>
-                <div class="ad-content">
-                    <div class="ad-placeholder">Реклама</div>
-                    <p class="ad-text">Здесь может быть размещена ваша реклама</p>
+            <div class="instructions">
+                <h4>📋 Как играть:</h4>
+                <ol>
+                    <li><strong>Создатель игры</strong> нажимает "Создать игру", копирует Offer код и отправляет другу</li>
+                    <li><strong>Участник</strong> вставляет Offer код и нажимает "Присоединиться"</li>
+                    <li><strong>Оба игрока</strong> расставляют корабли и начинают игру</li>
+                    <li>Играйте в реальном времени через P2P соединение!</li>
+                </ol>
+            </div>
+
+            <div class="connection-options">
+                <div class="option">
+                    <h4>🎮 Создать новую игру</h4>
+                    <p>Вы будете создателем комнаты</p>
+                    <button onclick="createP2PGame()" id="create-btn">Создать игру</button>
+                </div>
+
+                <div class="option">
+                    <h4>🔗 Присоединиться к игре</h4>
+                    <p>У вас есть код от друга?</p>
+                    <textarea id="offer-input" placeholder="Вставьте сюда Offer код от создателя игры..."></textarea>
+                    <button onclick="joinP2PGame()" id="join-btn">Присоединиться</button>
                 </div>
             </div>
         </div>
-        
-        <footer>
-            <p>© 2025 Крестики-нолики. Все права защищены.</p>
-        </footer>
+
+        <!-- Setup Section -->
+        <div id="setup-section" class="section">
+            <h2>Расстановка кораблей</h2>
+            
+            <div class="game-info">
+                <div class="connection-status" id="connection-status">Подготовка к игре...</div>
+                <p>Расставьте ваши корабли на поле ниже. Для демо-версии корабли расставлены автоматически.</p>
+            </div>
+
+            <div class="boards-container">
+                <div class="board-container">
+                    <h4>🎯 Ваше поле</h4>
+                    <div id="setup-board" class="board"></div>
+                </div>
+            </div>
+
+            <div class="ship-counters">
+                <div class="ship-counter">4-палубный: 1</div>
+                <div class="ship-counter">3-палубные: 2</div>
+                <div class="ship-counter">2-палубные: 3</div>
+                <div class="ship-counter">1-палубные: 4</div>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button onclick="startP2PGame()" id="start-btn" class="success">Начать игру!</button>
+                <button onclick="resetGame()" class="secondary">Начать заново</button>
+            </div>
+
+            <div class="p2p-controls">
+                <div class="code-section">
+                    <h4>📋 Offer код для подключения:</h4>
+                    <textarea id="offer-output" readonly placeholder="После создания игры здесь появится код..."></textarea>
+                    <button onclick="copyOffer()" id="copy-offer-btn">📋 Копировать Offer</button>
+                </div>
+                
+                <div class="code-section" id="answer-section" style="display: none;">
+                    <h4>📥 Answer код:</h4>
+                    <textarea id="answer-output" readonly placeholder="После присоединения здесь появится код..."></textarea>
+                    <button onclick="copyAnswer()" id="copy-answer-btn">📋 Копировать Answer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Section -->
+        <div id="game-section" class="section">
+            <h2>⚔️ Морской Бой</h2>
+            
+            <div class="game-info">
+                <div class="connection-status status-connected" id="game-status">Соединение установлено</div>
+                <p id="turn-info">Ваш ход! Выберите клетку на поле противника для атаки.</p>
+            </div>
+
+            <div class="boards-container">
+                <div class="board-container">
+                    <h4>🛡️ Ваше поле</h4>
+                    <div id="player-board" class="board"></div>
+                </div>
+                <div class="board-container">
+                    <h4>🎯 Поле противника</h4>
+                    <div id="enemy-board" class="board"></div>
+                </div>
+            </div>
+
+            <div class="ship-counters">
+                <div class="ship-counter" id="player-ships">Ваши корабли: 10/10</div>
+                <div class="ship-counter" id="enemy-ships">Корабли противника: 10/10</div>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button onclick="resetGame()" class="danger">Завершить игру</button>
+            </div>
+        </div>
+
+        <!-- Waiting Section -->
+        <div id="waiting-section" class="section">
+            <div class="loading">
+                <h2>⏳ Ожидание</h2>
+                <div class="spinner"></div>
+                <p id="waiting-message">Ожидание хода противника...</p>
+                <button onclick="checkConnection()" class="secondary">Проверить соединение</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const statusDisplay = document.getElementById('status');
-            const cells = document.querySelectorAll('.cell');
-            const resetButton = document.getElementById('reset');
-            const modeTwoPlayersBtn = document.getElementById('modeTwoPlayers');
-            const modeVsBotBtn = document.getElementById('modeVsBot');
-            const difficultyContainer = document.getElementById('difficultyContainer');
-            const difficultyEasyBtn = document.getElementById('difficultyEasy');
-            const difficultyMediumBtn = document.getElementById('difficultyMedium');
-            const difficultyHardBtn = document.getElementById('difficultyHard');
-            
-            let gameActive = true;
-            let currentPlayer = "X";
-            let gameState = ["", "", "", "", "", "", "", "", ""];
-            let vsBotMode = false;
-            let botDifficulty = "easy"; // По умолчанию легкий уровень
-            
-            const winningConditions = [
-                [0, 1, 2],
-                [3, 4, 5],
-                [6, 7, 8],
-                [0, 3, 6],
-                [1, 4, 7],
-                [2, 5, 8],
-                [0, 4, 8],
-                [2, 4, 6]
-            ];
-            
-            const winningMessage = () => `Победил игрок ${currentPlayer}!`;
-            const drawMessage = () => `Ничья!`;
-            const currentPlayerTurn = () => `Ход игрока: ${currentPlayer}`;
-            
-            statusDisplay.innerHTML = currentPlayerTurn();
-            
-            // Сначала скрываем выбор уровня сложности
-            difficultyContainer.style.display = 'none';
-            
-            function handleCellClick(clickedCellEvent) {
-                const clickedCell = clickedCellEvent.target;
-                const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+        class P2PSeaBattle {
+            constructor() {
+                this.peerConnection = null;
+                this.dataChannel = null;
+                this.isOfferer = false;
+                this.gameState = {
+                    playerShips: [],
+                    enemyShips: [],
+                    playerMoves: [],
+                    enemyMoves: [],
+                    currentTurn: null,
+                    gameStarted: false,
+                    playerName: `Игрок-${Math.floor(Math.random() * 1000)}`
+                };
                 
-                if (gameState[clickedCellIndex] !== "" || !gameActive) {
-                    return;
-                }
+                this.iceServers = {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' }
+                    ]
+                };
                 
-                handleCellPlayed(clickedCell, clickedCellIndex);
-                handleResultValidation();
-                
-                // Если режим против бота и игра продолжается, ходит бот
-                if (vsBotMode && gameActive && currentPlayer === "O") {
-                    setTimeout(botMove, 500);
-                }
+                this.init();
             }
-            
-            function handleCellPlayed(clickedCell, clickedCellIndex) {
-                gameState[clickedCellIndex] = currentPlayer;
-                clickedCell.innerHTML = currentPlayer;
-                clickedCell.classList.add(currentPlayer.toLowerCase());
+
+            init() {
+                this.showSection('connection-section');
+                console.log('P2P Sea Battle initialized');
             }
-            
-            function handleResultValidation() {
-                let roundWon = false;
-                for (let i = 0; i < winningConditions.length; i++) {
-                    const winCondition = winningConditions[i];
-                    let a = gameState[winCondition[0]];
-                    let b = gameState[winCondition[1]];
-                    let c = gameState[winCondition[2]];
+
+            async createP2PGame() {
+                try {
+                    this.isOfferer = true;
+                    this.gameState.currentTurn = 'player';
                     
-                    if (a === '' || b === '' || c === '') {
-                        continue;
+                    document.getElementById('create-btn').disabled = true;
+                    document.getElementById('create-btn').textContent = 'Создание...';
+                    
+                    this.peerConnection = new RTCPeerConnection(this.iceServers);
+                    this.setupConnectionListeners();
+                    
+                    // Создаем канал данных
+                    this.dataChannel = this.peerConnection.createDataChannel('sea-battle', {
+                        ordered: true
+                    });
+                    this.setupDataChannel();
+                    
+                    // Создаем offer
+                    const offer = await this.peerConnection.createOffer();
+                    await this.peerConnection.setLocalDescription(offer);
+                    
+                    this.showOffer(offer);
+                    this.showSetupSection();
+                    
+                    document.getElementById('create-btn').textContent = 'Игра создана!';
+                    
+                } catch (error) {
+                    console.error('Error creating P2P game:', error);
+                    alert('Ошибка при создании игры: ' + error.message);
+                    document.getElementById('create-btn').disabled = false;
+                    document.getElementById('create-btn').textContent = 'Создать игру';
+                }
+            }
+
+            async joinP2PGame() {
+                try {
+                    const offerString = document.getElementById('offer-input').value.trim();
+                    if (!offerString) {
+                        alert('Введите Offer код от создателя игры');
+                        return;
+                    }
+
+                    this.isOfferer = false;
+                    this.gameState.currentTurn = 'enemy';
+                    
+                    document.getElementById('join-btn').disabled = true;
+                    document.getElementById('join-btn').textContent = 'Присоединение...';
+                    
+                    const offer = JSON.parse(atob(offerString));
+                    
+                    this.peerConnection = new RTCPeerConnection(this.iceServers);
+                    this.setupConnectionListeners();
+                    
+                    // Настраиваем обработчик канала данных
+                    this.peerConnection.ondatachannel = (event) => {
+                        this.dataChannel = event.channel;
+                        this.setupDataChannel();
+                    };
+                    
+                    await this.peerConnection.setRemoteDescription(offer);
+                    const answer = await this.peerConnection.createAnswer();
+                    await this.peerConnection.setLocalDescription(answer);
+                    
+                    this.showAnswer(answer);
+                    this.showSetupSection();
+                    
+                    document.getElementById('join-btn').textContent = 'Присоединено!';
+                    
+                } catch (error) {
+                    console.error('Error joining P2P game:', error);
+                    alert('Ошибка при присоединении к игре. Проверьте Offer код: ' + error.message);
+                    document.getElementById('join-btn').disabled = false;
+                    document.getElementById('join-btn').textContent = 'Присоединиться';
+                }
+            }
+
+            setupConnectionListeners() {
+                this.peerConnection.oniceconnectionstatechange = () => {
+                    const state = this.peerConnection.iceConnectionState;
+                    this.updateConnectionStatus(state);
+                    
+                    if (state === 'connected') {
+                        this.onConnectionEstablished();
+                    } else if (state === 'disconnected' || state === 'failed') {
+                        this.showWaiting('Соединение потеряно. Попробуйте переподключиться.');
+                    }
+                };
+
+                this.peerConnection.onicecandidate = (event) => {
+                    if (event.candidate && this.dataChannel && this.dataChannel.readyState === 'open') {
+                        this.sendMessage({
+                            type: 'ice-candidate',
+                            candidate: event.candidate
+                        });
+                    }
+                };
+            }
+
+            setupDataChannel() {
+                this.dataChannel.onopen = () => {
+                    console.log('Data channel opened');
+                    this.updateConnectionStatus('connected');
+                    this.sendMessage({
+                        type: 'player-joined',
+                        playerName: this.gameState.playerName
+                    });
+                };
+
+                this.dataChannel.onclose = () => {
+                    console.log('Data channel closed');
+                    this.updateConnectionStatus('disconnected');
+                };
+
+                this.dataChannel.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        this.handleMessage(message);
+                    } catch (error) {
+                        console.error('Error parsing message:', error);
+                    }
+                };
+            }
+
+            sendMessage(message) {
+                if (this.dataChannel && this.dataChannel.readyState === 'open') {
+                    this.dataChannel.send(JSON.stringify(message));
+                } else {
+                    console.warn('Data channel not ready');
+                }
+            }
+
+            handleMessage(message) {
+                console.log('Received message:', message);
+                
+                switch (message.type) {
+                    case 'ice-candidate':
+                        this.handleICECandidate(message.candidate);
+                        break;
+                    case 'player-joined':
+                        this.handlePlayerJoined(message.playerName);
+                        break;
+                    case 'ships-placed':
+                        this.handleEnemyShips(message.ships);
+                        break;
+                    case 'move':
+                        this.handleEnemyMove(message.move);
+                        break;
+                    case 'game-started':
+                        this.handleGameStarted();
+                        break;
+                    case 'chat':
+                        this.handleChatMessage(message);
+                        break;
+                }
+            }
+
+            async handleICECandidate(candidate) {
+                try {
+                    await this.peerConnection.addIceCandidate(candidate);
+                } catch (error) {
+                    console.error('Error adding ICE candidate:', error);
+                }
+            }
+
+            handlePlayerJoined(playerName) {
+                alert(`Игрок ${playerName} присоединился к игре!`);
+            }
+
+            handleEnemyShips(ships) {
+                this.gameState.enemyShips = ships;
+                if (this.gameState.gameStarted) {
+                    this.updateGameUI();
+                }
+            }
+
+            handleEnemyMove(move) {
+                this.gameState.enemyMoves.push(move);
+                this.gameState.currentTurn = 'player';
+                this.updateGameUI();
+                this.checkWinCondition();
+                
+                // Показываем попадание
+                const hitShip = this.gameState.playerShips.some(ship => 
+                    ship.x === move.x && ship.y === move.y
+                );
+                
+                if (hitShip) {
+                    this.showMessage('Противник попал в ваш корабль!');
+                }
+            }
+
+            handleGameStarted() {
+                this.gameState.gameStarted = true;
+                this.showGameSection();
+                this.updateGameUI();
+            }
+
+            handleChatMessage(message) {
+                // Можно добавить чат в будущем
+                console.log('Chat:', message);
+            }
+
+            async makeMove(x, y) {
+                if (this.gameState.currentTurn !== 'player') {
+                    this.showMessage('Сейчас не ваш ход!');
+                    return;
+                }
+
+                // Проверяем, не стреляли ли уже сюда
+                const alreadyMoved = this.gameState.playerMoves.some(m => m.x === x && m.y === y);
+                if (alreadyMoved) {
+                    this.showMessage('Вы уже стреляли в эту клетку!');
+                    return;
+                }
+
+                const move = { x, y, timestamp: Date.now(), player: this.gameState.playerName };
+                this.gameState.playerMoves.push(move);
+                this.gameState.currentTurn = 'enemy';
+                
+                // Отправляем ход противнику
+                this.sendMessage({
+                    type: 'move',
+                    move: move
+                });
+
+                this.updateGameUI();
+                this.checkWinCondition();
+                this.showWaiting('Ожидание хода противника...');
+            }
+
+            checkWinCondition() {
+                const playerShipsAlive = this.gameState.playerShips.filter(ship =>
+                    !this.gameState.enemyMoves.some(move => move.x === ship.x && move.y === ship.y)
+                ).length;
+
+                const enemyShipsAlive = this.gameState.enemyShips.filter(ship =>
+                    !this.gameState.playerMoves.some(move => move.x === ship.x && move.y === ship.y)
+                ).length;
+
+                // Обновляем счетчики
+                document.getElementById('player-ships').textContent = `Ваши корабли: ${playerShipsAlive}/10`;
+                document.getElementById('enemy-ships').textContent = `Корабли противника: ${enemyShipsAlive}/10`;
+
+                if (playerShipsAlive === 0) {
+                    this.showMessage('😞 Вы проиграли! Все ваши корабли потоплены.');
+                    this.gameState.currentTurn = null;
+                } else if (enemyShipsAlive === 0) {
+                    this.showMessage('🎉 Поздравляем! Вы выиграли!');
+                    this.gameState.currentTurn = null;
+                }
+            }
+
+            startP2PGame() {
+                const ships = this.generateRandomShips();
+                this.gameState.playerShips = ships;
+                this.gameState.gameStarted = true;
+                
+                // Отправляем свои корабли противнику
+                this.sendMessage({
+                    type: 'ships-placed',
+                    ships: ships
+                });
+
+                // Если мы создатель игры, отправляем сигнал начала
+                if (this.isOfferer) {
+                    this.sendMessage({
+                        type: 'game-started'
+                    });
+                }
+
+                this.showGameSection();
+                this.updateGameUI();
+            }
+
+            onConnectionEstablished() {
+                console.log('P2P connection established');
+                this.showMessage('Соединение с противником установлено!');
+            }
+
+            // UI Methods
+            showSection(sectionId) {
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(sectionId).classList.add('active');
+            }
+
+            showSetupSection() {
+                this.showSection('setup-section');
+                this.renderSetupBoard();
+                this.updateConnectionStatus('connecting');
+            }
+
+            showGameSection() {
+                this.showSection('game-section');
+                this.hideWaiting();
+            }
+
+            showWaiting(message = 'Ожидание...') {
+                this.showSection('waiting-section');
+                document.getElementById('waiting-message').textContent = message;
+            }
+
+            hideWaiting() {
+                if (document.getElementById('waiting-section').classList.contains('active')) {
+                    this.showGameSection();
+                }
+            }
+
+            showOffer(offer) {
+                const offerString = btoa(JSON.stringify(offer));
+                document.getElementById('offer-output').value = offerString;
+                document.getElementById('answer-section').style.display = 'none';
+            }
+
+            showAnswer(answer) {
+                const answerString = btoa(JSON.stringify(answer));
+                document.getElementById('answer-output').value = answerString;
+                document.getElementById('answer-section').style.display = 'block';
+            }
+
+            updateConnectionStatus(state) {
+                const statusElement = document.getElementById('connection-status');
+                const gameStatusElement = document.getElementById('game-status');
+                
+                statusElement.textContent = this.getStatusText(state);
+                statusElement.className = `connection-status ${this.getStatusClass(state)}`;
+                
+                if (gameStatusElement) {
+                    gameStatusElement.textContent = this.getStatusText(state);
+                    gameStatusElement.className = `connection-status ${this.getStatusClass(state)}`;
+                }
+            }
+
+            getStatusText(state) {
+                const statusMap = {
+                    'new': 'Подготовка...',
+                    'checking': 'Проверка соединения...',
+                    'connected': '✅ Соединение установлено',
+                    'completed': '✅ Соединение установлено',
+                    'disconnected': '❌ Соединение потеряно',
+                    'failed': '❌ Ошибка соединения',
+                    'connecting': '🔄 Установка соединения...'
+                };
+                return statusMap[state] || state;
+            }
+
+            getStatusClass(state) {
+                const classMap = {
+                    'connected': 'status-connected',
+                    'completed': 'status-connected',
+                    'disconnected': 'status-disconnected',
+                    'failed': 'status-disconnected',
+                    'checking': 'status-connecting',
+                    'connecting': 'status-connecting',
+                    'new': 'status-connecting'
+                };
+                return classMap[state] || 'status-connecting';
+            }
+
+            updateGameUI() {
+                this.renderPlayerBoard();
+                this.renderEnemyBoard();
+
+                const turnInfo = document.getElementById('turn-info');
+                if (this.gameState.currentTurn === 'player') {
+                    turnInfo.textContent = '✅ Ваш ход! Атакуйте поле противника.';
+                    turnInfo.style.color = '#27ae60';
+                    this.hideWaiting();
+                } else {
+                    turnInfo.textContent = '⏳ Ход противника. Ожидайте...';
+                    turnInfo.style.color = '#e67e22';
+                    this.showWaiting('Ожидание хода противника...');
+                }
+
+                this.checkWinCondition();
+            }
+
+            renderSetupBoard() {
+                const board = document.getElementById('setup-board');
+                board.innerHTML = '';
+                
+                const ships = this.generateRandomShips();
+                this.gameState.playerShips = ships; // Сохраняем для игры
+                
+                for (let y = 0; y < 10; y++) {
+                    for (let x = 0; x < 10; x++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        
+                        const hasShip = ships.some(ship => ship.x === x && ship.y === y);
+                        if (hasShip) {
+                            cell.classList.add('ship');
+                        }
+                        
+                        board.appendChild(cell);
+                    }
+                }
+            }
+
+            renderPlayerBoard() {
+                const board = document.getElementById('player-board');
+                board.innerHTML = '';
+                
+                for (let y = 0; y < 10; y++) {
+                    for (let x = 0; x < 10; x++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        
+                        const hasShip = this.gameState.playerShips.some(ship => ship.x === x && ship.y === y);
+                        const isHit = this.gameState.enemyMoves.some(move => move.x === x && move.y === y);
+                        
+                        if (hasShip) cell.classList.add('ship');
+                        if (isHit) cell.classList.add('hit');
+                        if (isHit && !hasShip) cell.classList.add('miss');
+                        
+                        board.appendChild(cell);
+                    }
+                }
+            }
+
+            renderEnemyBoard() {
+                const board = document.getElementById('enemy-board');
+                board.innerHTML = '';
+                
+                for (let y = 0; y < 10; y++) {
+                    for (let x = 0; x < 10; x++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.x = x;
+                        cell.dataset.y = y;
+                        
+                        const isHit = this.gameState.playerMoves.some(move => move.x === x && move.y === y);
+                        const hasShip = this.gameState.enemyShips.some(ship => ship.x === x && ship.y === y);
+                        
+                        if (isHit) {
+                            cell.classList.add(hasShip ? 'hit' : 'miss');
+                        }
+                        
+                        if (this.gameState.currentTurn === 'player' && !isHit && this.gameState.gameStarted) {
+                            cell.style.cursor = 'pointer';
+                            cell.addEventListener('click', () => {
+                                this.makeMove(x, y);
+                            });
+                        } else {
+                            cell.style.cursor = 'default';
+                        }
+                        
+                        board.appendChild(cell);
+                    }
+                }
+            }
+
+            generateRandomShips() {
+                const ships = [];
+                const shipLengths = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1];
+                
+                for (const length of shipLengths) {
+                    let placed = false;
+                    let attempts = 0;
+                    
+                    while (!placed && attempts < 100) {
+                        const x = Math.floor(Math.random() * 10);
+                        const y = Math.floor(Math.random() * 10);
+                        const horizontal = Math.random() > 0.5;
+                        
+                        if (this.canPlaceShip(ships, x, y, length, horizontal)) {
+                            for (let i = 0; i < length; i++) {
+                                ships.push({
+                                    x: horizontal ? x + i : x,
+                                    y: horizontal ? y : y + i,
+                                    length: length,
+                                    horizontal: horizontal
+                                });
+                            }
+                            placed = true;
+                        }
+                        attempts++;
                     }
                     
-                    if (a === b && b === c) {
-                        roundWon = true;
-                        break;
+                    if (!placed) {
+                        console.warn(`Could not place ship of length ${length}`);
                     }
                 }
                 
-                if (roundWon) {
-                    statusDisplay.innerHTML = winningMessage();
-                    gameActive = false;
-                    return;
-                }
-                
-                let roundDraw = !gameState.includes("");
-                if (roundDraw) {
-                    statusDisplay.innerHTML = drawMessage();
-                    gameActive = false;
-                    return;
-                }
-                
-                handlePlayerChange();
+                return ships;
             }
-            
-            function handlePlayerChange() {
-                currentPlayer = currentPlayer === "X" ? "O" : "X";
-                statusDisplay.innerHTML = currentPlayerTurn();
-            }
-            
-            function handleRestartGame() {
-                gameActive = true;
-                currentPlayer = "X";
-                gameState = ["", "", "", "", "", "", "", "", ""];
-                statusDisplay.innerHTML = currentPlayerTurn();
-                cells.forEach(cell => {
-                    cell.innerHTML = "";
-                    cell.classList.remove("x", "o");
-                });
-                
-                // Если режим против бота и бот ходит первым
-                if (vsBotMode && currentPlayer === "O") {
-                    setTimeout(botMove, 500);
-                }
-            }
-            
-            function botMove() {
-                if (!gameActive || currentPlayer !== "O") return;
-                
-                let availableCells = [];
-                gameState.forEach((cell, index) => {
-                    if (cell === "") availableCells.push(index);
-                });
-                
-                let moveIndex;
-                
-                // Выбор хода в зависимости от уровня сложности
-                switch(botDifficulty) {
-                    case "easy":
-                        moveIndex = getEasyMove(availableCells);
-                        break;
-                    case "medium":
-                        moveIndex = getMediumMove(availableCells);
-                        break;
-                    case "hard":
-                        moveIndex = getHardMove(availableCells);
-                        break;
-                    default:
-                        moveIndex = getEasyMove(availableCells);
-                }
-                
-                makeBotMove(moveIndex);
-            }
-            
-            // Легкий уровень - случайные ходы
-            function getEasyMove(availableCells) {
-                return availableCells[Math.floor(Math.random() * availableCells.length)];
-            }
-            
-            // Средний уровень - пытается выиграть или блокировать игрока
-            function getMediumMove(availableCells) {
-                // Проверяем, может ли бот выиграть
-                for (let i = 0; i < availableCells.length; i++) {
-                    let testGameState = [...gameState];
-                    testGameState[availableCells[i]] = "O";
-                    if (checkWinner(testGameState) === "O") {
-                        return availableCells[i];
+
+            canPlaceShip(existingShips, x, y, length, horizontal) {
+                for (let i = 0; i < length; i++) {
+                    const checkX = horizontal ? x + i : x;
+                    const checkY = horizontal ? y : y + i;
+                    
+                    if (checkX >= 10 || checkY >= 10) return false;
+                    
+                    // Проверяем соседние клетки
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            const neighborX = checkX + dx;
+                            const neighborY = checkY + dy;
+                            
+                            if (neighborX >= 0 && neighborX < 10 && neighborY >= 0 && neighborY < 10) {
+                                const hasNeighborShip = existingShips.some(ship => 
+                                    ship.x === neighborX && ship.y === neighborY
+                                );
+                                if (hasNeighborShip) return false;
+                            }
+                        }
                     }
                 }
-                
-                // Проверяем, нужно ли блокировать игрока
-                for (let i = 0; i < availableCells.length; i++) {
-                    let testGameState = [...gameState];
-                    testGameState[availableCells[i]] = "X";
-                    if (checkWinner(testGameState) === "X") {
-                        return availableCells[i];
+                return true;
+            }
+
+            showMessage(message) {
+                alert(message);
+            }
+
+            copyOffer() {
+                const offerOutput = document.getElementById('offer-output');
+                offerOutput.select();
+                document.execCommand('copy');
+                this.showMessage('Offer код скопирован в буфер обмена! Отправьте его другу.');
+            }
+
+            copyAnswer() {
+                const answerOutput = document.getElementById('answer-output');
+                answerOutput.select();
+                document.execCommand('copy');
+                this.showMessage('Answer код скопирован! Отправьте его создателю игры.');
+            }
+
+            resetGame() {
+                if (confirm('Вы уверены, что хотите начать заново? Текущая игра будет потеряна.')) {
+                    if (this.peerConnection) {
+                        this.peerConnection.close();
                     }
-                }
-                
-                // Иначе случайный ход
-                return availableCells[Math.floor(Math.random() * availableCells.length)];
-            }
-            
-            // Сложный уровень - использует минимакс алгоритм для оптимальной игры
-            function getHardMove(availableCells) {
-                // Сначала проверяем, может ли бот выиграть
-                for (let i = 0; i < availableCells.length; i++) {
-                    let testGameState = [...gameState];
-                    testGameState[availableCells[i]] = "O";
-                    if (checkWinner(testGameState) === "O") {
-                        return availableCells[i];
-                    }
-                }
-                
-                // Затем проверяем, нужно ли блокировать игрока
-                for (let i = 0; i < availableCells.length; i++) {
-                    let testGameState = [...gameState];
-                    testGameState[availableCells[i]] = "X";
-                    if (checkWinner(testGameState) === "X") {
-                        return availableCells[i];
-                    }
-                }
-                
-                // Стратегические ходы - центр и углы
-                const center = 4;
-                if (availableCells.includes(center)) {
-                    return center;
-                }
-                
-                const corners = [0, 2, 6, 8];
-                const availableCorners = corners.filter(corner => availableCells.includes(corner));
-                if (availableCorners.length > 0) {
-                    return availableCorners[Math.floor(Math.random() * availableCorners.length)];
-                }
-                
-                // Оставшиеся ходы (стороны)
-                const sides = [1, 3, 5, 7];
-                const availableSides = sides.filter(side => availableCells.includes(side));
-                if (availableSides.length > 0) {
-                    return availableSides[Math.floor(Math.random() * availableSides.length)];
-                }
-                
-                // Если ничего не найдено, случайный ход
-                return availableCells[Math.floor(Math.random() * availableCells.length)];
-            }
-            
-            function makeBotMove(index) {
-                const cell = document.querySelector(`.cell[data-index="${index}"]`);
-                handleCellPlayed(cell, index);
-                handleResultValidation();
-            }
-            
-            function checkWinner(state) {
-                for (let i = 0; i < winningConditions.length; i++) {
-                    const [a, b, c] = winningConditions[i];
-                    if (state[a] && state[a] === state[b] && state[a] === state[c]) {
-                        return state[a];
-                    }
-                }
-                return null;
-            }
-            
-            function setGameMode(mode) {
-                vsBotMode = mode === 'bot';
-                
-                // Показываем или скрываем выбор уровня сложности
-                difficultyContainer.style.display = vsBotMode ? 'flex' : 'none';
-                
-                // Обновляем активные кнопки
-                modeTwoPlayersBtn.classList.toggle('active', !vsBotMode);
-                modeVsBotBtn.classList.toggle('active', vsBotMode);
-                
-                // Перезапускаем игру
-                handleRestartGame();
-            }
-            
-            function setBotDifficulty(difficulty) {
-                botDifficulty = difficulty;
-                
-                // Обновляем активные кнопки
-                difficultyEasyBtn.classList.toggle('active', difficulty === 'easy');
-                difficultyMediumBtn.classList.toggle('active', difficulty === 'medium');
-                difficultyHardBtn.classList.toggle('active', difficulty === 'hard');
-                
-                // Если игра против бота активна, перезапускаем игру
-                if (vsBotMode) {
-                    handleRestartGame();
+                    this.gameState = {
+                        playerShips: [],
+                        enemyShips: [],
+                        playerMoves: [],
+                        enemyMoves: [],
+                        currentTurn: null,
+                        gameStarted: false,
+                        playerName: `Игрок-${Math.floor(Math.random() * 1000)}`
+                    };
+                    this.showSection('connection-section');
+                    
+                    // Сброс кнопок
+                    document.getElementById('create-btn').disabled = false;
+                    document.getElementById('create-btn').textContent = 'Создать игру';
+                    document.getElementById('join-btn').disabled = false;
+                    document.getElementById('join-btn').textContent = 'Присоединиться';
                 }
             }
-            
-            cells.forEach(cell => cell.addEventListener('click', handleCellClick));
-            resetButton.addEventListener('click', handleRestartGame);
-            modeTwoPlayersBtn.addEventListener('click', () => setGameMode('twoPlayers'));
-            modeVsBotBtn.addEventListener('click', () => setGameMode('bot'));
-            difficultyEasyBtn.addEventListener('click', () => setBotDifficulty('easy'));
-            difficultyMediumBtn.addEventListener('click', () => setBotDifficulty('medium'));
-            difficultyHardBtn.addEventListener('click', () => setBotDifficulty('hard'));
-        });
+
+            checkConnection() {
+                if (this.peerConnection) {
+                    const state = this.peerConnection.iceConnectionState;
+                    this.updateConnectionStatus(state);
+                    this.showMessage(`Статус соединения: ${state}`);
+                } else {
+                    this.showMessage('Соединение не установлено');
+                }
+            }
+        }
+
+        // Глобальные функции
+        let p2pGame;
+
+        function initGame() {
+            p2pGame = new P2PSeaBattle();
+        }
+
+        function createP2PGame() {
+            p2pGame.createP2PGame();
+        }
+
+        function joinP2PGame() {
+            p2pGame.joinP2PGame();
+        }
+
+        function startP2PGame() {
+            p2pGame.startP2PGame();
+        }
+
+        function copyOffer() {
+            p2pGame.copyOffer();
+        }
+
+        function copyAnswer() {
+            p2pGame.copyAnswer();
+        }
+
+        function resetGame() {
+            p2pGame.resetGame();
+        }
+
+        function checkConnection() {
+            p2pGame.checkConnection();
+        }
+
+        // Инициализация при загрузке
+        window.addEventListener('load', initGame);
     </script>
 </body>
 </html>
